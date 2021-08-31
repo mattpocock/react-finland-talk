@@ -1,0 +1,27 @@
+.wrapper {
+  height: 270px;
+  width: 480px;
+  position: relative;
+}
+
+.video {
+  height: 270px;
+  width: 480px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+
+.image {
+  height: 270px;
+  width: 480px;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+
+  &[data-hidden="hidden"] {
+    opacity: 0;
+  }
+  transition: opacity 1s;
+  pointer-events: none;
+}

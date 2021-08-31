@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import cssExports from "./AsyncLoadVideo.module.scss";
 
 interface AsyncLoadVideoProps {
   videoSrc: string;
@@ -10,58 +11,65 @@ interface AsyncLoadVideoProps {
 export const AsyncLoadVideo = (props: AsyncLoadVideoProps) => {
   const [videoLoaded, setHasVideoLoaded] = useState(false);
   const [imageLoaded, setHasImageLoaded] = useState(false);
-  const [videoSrc, setVideoSrc] = useState("");
-  const [imageSrc, setImageSrc] = useState("");
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (props.isOnScreen && props.bgImageSrc) {
-      setImageSrc(props.bgImageSrc);
+    if (props.bgImageSrc && props.isOnScreen) {
       setHasImageLoaded(false);
-    }
-  }, [props.isOnScreen, props.bgImageSrc]);
-
-  useEffect(() => {
-    if (props.isOnScreen && props.videoSrc) {
-      setVideoSrc(props.videoSrc);
-      setHasVideoLoaded(false);
-    }
-  }, [props.isOnScreen, props.videoSrc]);
-
-  useEffect(() => {
-    if (imageSrc && props.isOnScreen) {
       const image = new Image();
 
       image.onload = () => {
         setHasImageLoaded(true);
       };
-      image.src = imageSrc;
+      image.src = props.bgImageSrc;
     }
-  }, [imageSrc, props.isOnScreen]);
+  }, [props.bgImageSrc, props.isOnScreen]);
 
   useEffect(() => {
-    if (videoSrc && props.isOnScreen) {
+    if (props.videoSrc && props.isOnScreen) {
+      setHasVideoLoaded(false);
       const videoElem = document.createElement("video");
 
-      videoElem.oncanplaythrough = () => {
+      videoElem.oncanplay = () => {
         setHasVideoLoaded(true);
       };
 
-      videoElem.src = videoSrc;
+      videoElem.src = props.videoSrc;
 
       return () => {
         videoElem.remove();
       };
     }
-  }, [videoSrc, props.isOnScreen]);
+  }, [props.videoSrc, props.isOnScreen]);
 
-  if (videoSrc && props.isOnScreen && videoLoaded && props.isHovered) {
+  useEffect(() => {
+    const videoElem = videoRef.current;
+
+    if (props.isHovered && videoElem && videoLoaded) {
+      videoElem?.play();
+
+      return () => {
+        videoElem?.pause();
+      };
+    }
+  }, [videoLoaded, props.isHovered]);
+
+  if (imageLoaded) {
     return (
-      <video src={videoSrc} autoPlay muted height="270px" width="480px"></video>
+      <div className={cssExports.wrapper}>
+        <video
+          ref={videoRef}
+          src={props.videoSrc}
+          className={cssExports.video}
+          muted
+        />
+        <img
+          data-hidden={props.isHovered && videoLoaded ? "hidden" : ""}
+          src={props.bgImageSrc}
+          className={cssExports.image}
+        />
+      </div>
     );
-  }
-
-  if (imageSrc && imageLoaded && props.isOnScreen) {
-    return <img src={imageSrc} height="270px" width="480px"></img>;
   }
 
   return <div>Loading...</div>;
